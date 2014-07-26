@@ -1,0 +1,3 @@
+src/app/code/community/Xylo/ConnectGenerator    app/code/community/Xylo/ConnectGenerator
+src/app/etc/modules/*                           app/etc/modules/
+src/shell/*                                     shell/
