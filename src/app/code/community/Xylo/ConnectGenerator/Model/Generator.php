@@ -110,7 +110,7 @@ class Xylo_ConnectGenerator_Model_Generator {
 
     /**
      * Converts provided path to the target name and path
-     * relative to the target root path
+     * relative to the package target root path
      *
      * @param  string $contentPath Path to the file or folder
      * @return Varien_Object
@@ -216,6 +216,27 @@ class Xylo_ConnectGenerator_Model_Generator {
     }
 
     /**
+     * Unset redundant params, not used by the extension model,
+     * from the config array
+     *
+     * @param  array $config Parsed config array
+     * @return array Config array with redundant params unset
+     */
+    protected function _unsetRedundantConfigParams($config) {
+        $cleanConfig = $config;
+        if (array_key_exists('files', $cleanConfig)) {
+            unset($cleanConfig['files']);
+        }
+        if (array_key_exists('directories', $cleanConfig)) {
+            unset($cleanConfig['directories']);
+        }
+        if (array_key_exists('depends', $cleanConfig)) {
+            unset($cleanConfig['depends']);
+        }
+        return $cleanConfig;
+    }
+
+    /**
      * Sets config file path and format
      *
      * @param string $config Config file path
@@ -268,9 +289,22 @@ class Xylo_ConnectGenerator_Model_Generator {
         $config = $this->_getParser()->parse($this->_getConfig());
         $contentsConfig = $this->_exctractContentsConfig($config);
         $dependenciesConfig = $this->_exctractDependenciesConfig($config);
-        $config = array_merge($config, $contentsConfig, $dependenciesConfig);
+        $config = $this->_unsetRedundantConfigParams(array_merge($config, $contentsConfig, $dependenciesConfig));
         $targetDir = $target ? realpath($target) . DS : Mage::helper('connect')->getLocalPackagesPath();
         return $this->_getExtensionModel()->setData($config)->createPackage($targetDir);
+    }
+
+    /**
+     * Parses provided config file
+     *
+     * @return array Parsed config array
+     */
+    public function parseConfig() {
+        $config = $this->_getParser()->parse($this->_getConfig());
+        $contentsConfig = $this->_exctractContentsConfig($config);
+        $dependenciesConfig = $this->_exctractDependenciesConfig($config);
+        $config = $this->_unsetRedundantConfigParams(array_merge($config, $contentsConfig, $dependenciesConfig));
+        return $config;
     }
 
 }

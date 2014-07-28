@@ -46,9 +46,10 @@ class Xylo_ConnectGenerator_Shell extends Mage_Shell_Abstract {
     /**
      * Run script
      *
+     * @return void
      */
     public function run() {
-        if ($this->getArg('generate')) {
+        if ($this->getArg('generate') || $this->getArg('validate')) {
             $generator = Mage::getModel('xl_connectgenerator/generator');
             if ($config = $this->getArg('json')) {
                 $generator->setJsonConfig($config);
@@ -60,10 +61,16 @@ class Xylo_ConnectGenerator_Shell extends Mage_Shell_Abstract {
                 echo $this->usageHelp();
                 return;
             }
-            $target = $this->getArg('target') ? $this->getArg('target') : null;
-            die($generator->process($target));
-        } elseif ($this->getArg('validate')) {
-            die('NOT IMPLEMENTED');
+            if ($this->getArg('generate')) {
+                $target = $this->getArg('target') ? $this->getArg('target') : null;
+                echo $generator->process($target);
+            } elseif ($this->getArg('validate')) {
+                $parsedConfig = $generator->parseConfig();
+                if ($this->getArg('show-config')) {
+                    print_r($parsedConfig);
+                }
+                echo 'Great! Your config seems to be correct.';
+            }
         } else {
             echo $this->usageHelp();
             return;
@@ -73,18 +80,27 @@ class Xylo_ConnectGenerator_Shell extends Mage_Shell_Abstract {
     /**
      * Retrieve Usage Help Message
      *
+     * @return void
      */
     public function usageHelp() {
         return <<<USAGE
 Usage:  php -f connect-generator.php -- [options]
         php -f connect-generator.php -- generate --yaml package.yaml --target /package_folder
+        php -f connect-generator.php -- validate --yaml package.yaml --show-config
 
   generate              Generates Magento Connect package from provided configuration
   validate              Validates provided configuration
+
+  Common options:
   --json <file path>    Path to configuration file in JSON format
   --yaml <file path>    Path to configuration file in YAML format
   --xml <file path>     Path to configuration file in XML format
+
+  Generate options:
   --target <file path>  Folder path where the generated package shall be saved to
+
+  Validate options:
+  --show-config         Print parsed config array
 
 USAGE;
     }
